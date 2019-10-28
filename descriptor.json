@@ -1,5 +1,5 @@
 {
-  "name": "Segmentation Predict",
+  "name": "Segmentation-Predict",
   "description": "Detect samples in images using an U-Net.",
   "container-image": {
     "image": "fibremint/cm-software_segmentation-predict",
@@ -74,7 +74,8 @@
       "description": "Value for threshold probability",
       "set-by-server": false,
       "optional": true,
-      "type": "Number"
+      "type": "Number",
+      "default-value": 0.5
     }
   ]
 }
