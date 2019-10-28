@@ -50,8 +50,9 @@ def init_model():
     sess.run(tf.global_variables_initializer())
 
     try:
-        model.load_weights('./model/checkpoint_5.h5')
-    except:
+        model.load_weights('/app/model/checkpoint_5.h5')
+    except Exception as e:
+        print(e)
         sys.exit("ERR: failed to load weights")
 
     return sess, model_input, model_output
