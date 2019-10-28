@@ -1,8 +1,10 @@
 FROM cytomineuliege/software-python3-base:latest
 
-RUN /bin/sh -c set -ex && wget -O neubiaswg5-util.tar.gz https://github.com/Neubias-WG5/neubiaswg5-utilities/archive/v0.8.0.tar.gz && tar xf neubiaswg5-util.tar.gz --strip 1 && pip install .
+RUN /bin/sh -c set -ex && wget -O /tmp/neubiaswg5-util.tar.gz https://github.com/Neubias-WG5/neubiaswg5-utilities/archive/v0.8.0.tar.gz && tar -xf /tmp/neubiaswg5-util.tar.gz --strip 1 -C /tmp && pip install /tmp/.
 
-RUN pip install -r requirements.txt
+COPY requirements.txt /tmp
+
+RUN pip install -r /tmp/requirements.txt
 
 RUN mkdir -p /app
 
