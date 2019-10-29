@@ -3,8 +3,7 @@ Workflow:
 1. fetch whole slide
 
 """
-import os, sys, time, socket
-from multiprocessing import cpu_count
+import os, sys
 
 from cytomine import CytomineJob
 from cytomine.models import Job, Annotation, AnnotationCollection
@@ -73,7 +72,7 @@ def predict_img(sess: tf.Session, model_input, model_pred, in_image, in_path, ou
                                                        start=20, end=95, period=0.05, prefix="Generate segmentation : "):
                 # sys.stdout.write('{}-{},'.format(step, (batch_imgs.shape[0])))
                 # sys.stdout.flush()
-                cj.job.update(statusComment="{} / {}".format(step, len(batch_imgs)))
+                # cj.job.update(statusComment="{} / {}".format(step, len(batch_imgs)))
 
                 feed_dict = {
                     model_input: batch_imgs,
@@ -144,7 +143,7 @@ def upload_data(out_path, out_filename, in_image, project_id):
     #     s, in_image.id, in_image.height, project_id) for s in slices
     # ])
 
-    annotations.save(chunk=20, n_workers=cpu_count() * 2)
+    annotations.save(chunk=20)
 
 
 def main(argv):
