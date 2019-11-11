@@ -49,7 +49,7 @@ def init_model():
     sess.run(tf.global_variables_initializer())
 
     try:
-        model.load_weights('/app/model/checkpoint_5.h5')
+        model.load_weights('./model/checkpoint_5.h5')
     except Exception as e:
         print(e)
         sys.exit("ERR: failed to load weights")
@@ -69,7 +69,7 @@ def predict_img(sess: tf.Session, model_input, model_pred, in_image, in_path, ou
 
         with sess.as_default():
             for step, (batch_imgs, locs) in cj.monitor(enumerate(slide_iter),
-                                                       start=20, end=95, period=0.05, prefix="Generate segmentation : "):
+                                                       start=20, end=95, period=0.05, prefix="Generate segmentation :"):
                 # sys.stdout.write('{}-{},'.format(step, (batch_imgs.shape[0])))
                 # sys.stdout.flush()
                 # cj.job.update(statusComment="{} / {}".format(step, len(batch_imgs)))
@@ -145,10 +145,10 @@ def upload_data(out_path, out_filename, in_image, project_id):
 
     annotations.save(chunk=20)
 
-
+# TODO: add num_batch
 def main(argv):
     with CytomineJob.from_cli(argv) as cj:
-        cj.job.update(Job.RUNNING, progress=0, statusComment="Initializing...")
+        cj.job.update(status=Job.RUNNING, progress=0, statusComment="Initializing...")
 
         sess, model_input, model_output = init_model()
 
@@ -179,7 +179,7 @@ def main(argv):
         cj.job.update(progress=95, statusComment="Uploading annotations...")
         upload_data(out_path, predicted_filename, image, cj.parameters.cytomine_id_project)
 
-        cj.job.update(Job.SUCCESS, progress=100, statusComment="Complete")
+        cj.job.update(status=Job.SUCCESS, progress=100, statusComment="Complete")
 
 
 if __name__ == "__main__":
