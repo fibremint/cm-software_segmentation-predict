@@ -11,15 +11,19 @@ Model = keras.models.Model
 layers = keras.layers
 K = keras.backend
 
+
 def preprocess_input(x):
     with tf.name_scope('preprocess_input'):
         x /= 255.
         x -= 0.5
         x *= 2.
         return x
-class UNet():
+
+
+class UNet:
     def __init__(self):
         pass
+
     def get_crop_shape(self, target, refer):
         # width, the 3rd dimension
         cw = (target.get_shape()[2] - refer.get_shape()[2]).value
