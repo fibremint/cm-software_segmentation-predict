@@ -13,7 +13,6 @@ from tensorflow import keras
 from skimage.transform import resize
 
 from segmentation.util import create_annotation_from_location
-from ray.experimental import queue
 
 K = keras.backend
 
@@ -85,38 +84,6 @@ class SlideSegmentation:
                     print("predict: {}/{}".format(batch_idx, batch_len))
                     _predict_crop_batch(crop_batch=ray.get(crop_batch_ids), segmentation_result=wsi_seg_res)
                     batch_idx += 1
-        # with self.sess.as_default():
-            # for crop_id_batch in self.cj.monitor(crop_id_batches,
-            #                                      start=5, end=95, period=0.1,
-            #                                      prefix="Segment slide"):
-            #     crop_batch = ray.get(crop_id_batch)
-            #     batch_images = [result[0] for result in crop_batch]
-            #
-            #     feed_dict = {
-            #         self.model_input: batch_images,
-            #         K.learning_phase(): False
-            #     }
-            #
-            #     batch_predicted = self.sess.run(self.model_output, feed_dict=feed_dict)
-            #     batch_logits = batch_predicted[:, :, :, 1]
-            #
-            #     for i in range(len(batch_logits)):
-            #         crop_batch[i][0] = batch_logits[i, :, :]
-            #
-            #     for seg, loc in crop_batch:
-            #         y, x = loc[1], loc[0]
-            #         # there is overlapping
-            #         seg_h, seg_w = seg.shape
-            #         # prevent overflow, not happen usually
-            #         if seg_h + y > wsi_seg_res.shape[0]:
-            #             y = wsi_seg_res.shape[0] - seg_h
-            #         if seg_w + x > wsi_seg_res.shape[1]:
-            #             x = wsi_seg_res.shape[1] - seg_w
-            #         # wsi_mask[y:y + seg_h, x:x + seg_w] = wsi_mask[y:y + seg_h, x:x + seg_w] + 1
-            #
-            #         ## maximum
-            #         wsi_seg_res[y:y + seg_h, x:x + seg_w] = np.maximum(wsi_seg_res[y:y + seg_h, x:x + seg_w],
-            #                                                            seg.astype(np.float16))
 
         wsi_seg_res = resize(wsi_seg_res, self.slide_crop.original_slide_size())
         wsi_seg_res = wsi_seg_res.astype(np.float32) / wsi_seg_res.max()
