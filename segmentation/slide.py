@@ -11,14 +11,16 @@ class _SlideActor:
         self.slide = openslide.open_slide(slide_path)
         self.level = level
 
-    def crop(self, crop_coordinate, crop_size, tile_size):
+    def crop(self, crop_coordinate, crop_size, tile_size, crop_scale):
         y, x = crop_coordinate
         x = int(x)
         y = int(y)
         slide_tile = self.slide.read_region((x, y), self.level, (crop_size, crop_size))
         slide_tile = np.asarray(slide_tile)[:, :, 0:-1]
-        slide_tile = resize(slide_tile, (tile_size, tile_size))
+        slide_tile = resize(slide_tile, (tile_size, tile_size), preserve_range=True)
 
+        x = int(x / crop_scale)
+        y = int(y / crop_scale)
         return [slide_tile, (x, y)]
 
     def slide_size(self):
@@ -41,7 +43,7 @@ class SlideCrop:
     def predicted_slide_size(self):
         slide_width, slide_height = self.original_slide_size()
 
-        return [int(slide_width / self.crop_scale), int(slide_height / self.crop_scale)]
+        return [int(slide_height / self.crop_scale), int(slide_width / self.crop_scale), ]
 
     def crop(self, batch_size):
         slide_width, slide_height = self.original_slide_size()
@@ -81,7 +83,9 @@ class SlideCrop:
                 slide_actor = _SlideActor.remote(slide_path=self.slide_path)
 
             results.append([slide_actor.crop.remote(crop_coordinate=crop_coordinate,
-                                                    crop_size=self.crop_size, tile_size=self.tile_size)
+                                                    crop_size=self.crop_size,
+                                                    tile_size=self.tile_size,
+                                                    crop_scale=self.crop_scale)
                             for crop_coordinate in crop_coordinates_batch])
 
         yield results
