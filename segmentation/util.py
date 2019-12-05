@@ -13,3 +13,19 @@ def create_annotation_from_location(location, id_image, image_height, id_project
     }
 
     return Annotation(**parameters)
+
+
+class CytomineJobPartialUpdate:
+    def __init__(self, cj, start, end, max_index, prefix=""):
+        self.cj = cj
+        self.start = start
+        self.start_end_delta = end - self.start
+        self.max_index = max_index
+        self.prefix = prefix
+        self.current_index = 0
+
+    def update(self):
+        self.current_index += 1
+        progress = self.start + int(self.start_end_delta * (self.current_index / self.max_index))
+        status_comment = self.prefix + " ({}/{})".format(self.current_index, self.max_index)
+        self.cj.job.update(progress=progress, statusComment=status_comment)

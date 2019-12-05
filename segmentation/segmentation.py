@@ -12,7 +12,7 @@ import ray
 from tensorflow import keras
 from skimage.transform import resize
 
-from segmentation.util import create_annotation_from_location
+from segmentation.util import create_annotation_from_location, CytomineJobPartialUpdate
 
 K = keras.backend
 
@@ -40,7 +40,7 @@ class SlideSegmentation:
             model.load_weights('./model/checkpoint_5.h5')
 
         except Exception as e:
-            sys.exit("ERR: failed to load weights")
+            sys.exit("ERROR: failed to load weights")
 
     def predict(self):
         # print('{} patches, split to {} batches'.format(len_patches, math.ceil(len_patches / )))
@@ -49,42 +49,16 @@ class SlideSegmentation:
                                 shape=tuple(self.slide_crop.predicted_slide_size()))
         crop_batch_iterator, batch_len = self.slide_crop.crop(batch_size=self.batch_size)
 
-        def _predict_crop_batch(crop_batch, segmentation_result):
-            batch_images = [result[0] for result in crop_batch]
+        partial_update = CytomineJobPartialUpdate(cj=self.cj, start=5, end=85,
+                                                  max_index=batch_len, prefix="Predict slide")
 
-            feed_dict = {
-                self.model_input: batch_images,
-                K.learning_phase(): False
-            }
-
-            batch_predicted = self.sess.run(self.model_output, feed_dict=feed_dict)
-            batch_logits = batch_predicted[:, :, :, 1]
-
-            for i in range(len(batch_logits)):
-                crop_batch[i][0] = batch_logits[i, :, :]
-
-            for seg, loc in crop_batch:
-                y, x = loc[1], loc[0]
-                # there is overlapping
-                seg_h, seg_w = seg.shape
-                # prevent overflow, not happen usually
-                if seg_h + y > segmentation_result.shape[0]:
-                    y = segmentation_result.shape[0] - seg_h
-                if seg_w + x > segmentation_result.shape[1]:
-                    x = segmentation_result.shape[1] - seg_w
-                # wsi_mask[y:y + seg_h, x:x + seg_w] = wsi_mask[y:y + seg_h, x:x + seg_w] + 1
-
-                ## maximum
-                segmentation_result[y:y + seg_h, x:x + seg_w] = np.maximum(segmentation_result[y:y + seg_h, x:x + seg_w],
-                                                                           seg.astype(np.float16))
-        batch_idx = 1
         with self.sess.as_default():
             for crop_batches_ids in crop_batch_iterator:
                 for crop_batch_ids in crop_batches_ids:
-                    print("predict: {}/{}".format(batch_idx, batch_len))
-                    _predict_crop_batch(crop_batch=ray.get(crop_batch_ids), segmentation_result=wsi_seg_res)
-                    batch_idx += 1
+                    partial_update.update()
+                    self._predict_crop_batch(crop_batch=ray.get(crop_batch_ids), segmentation_result=wsi_seg_res)
 
+        self.cj.job.update(progress=90, statusComment="Processing predicted results")
         wsi_seg_res = resize(wsi_seg_res, self.slide_crop.original_slide_size())
         wsi_seg_res = wsi_seg_res.astype(np.float32) / wsi_seg_res.max()
         wsi_seg_res[wsi_seg_res < self.threshold] = 0
@@ -92,8 +66,37 @@ class SlideSegmentation:
 
         return wsi_seg_res
 
+    def _predict_crop_batch(self, crop_batch, segmentation_result):
+        batch_images = [result[0] for result in crop_batch]
+
+        feed_dict = {
+            self.model_input: batch_images,
+            K.learning_phase(): False
+        }
+
+        batch_predicted = self.sess.run(self.model_output, feed_dict=feed_dict)
+        batch_logits = batch_predicted[:, :, :, 1]
+
+        for i in range(len(batch_logits)):
+            crop_batch[i][0] = batch_logits[i, :, :]
+
+        for seg, loc in crop_batch:
+            y, x = loc[1], loc[0]
+            # there is overlapping
+            seg_h, seg_w = seg.shape
+            # prevent overflow, not happen usually
+            if seg_h + y > segmentation_result.shape[0]:
+                y = segmentation_result.shape[0] - seg_h
+            if seg_w + x > segmentation_result.shape[1]:
+                x = segmentation_result.shape[1] - seg_w
+            # wsi_mask[y:y + seg_h, x:x + seg_w] = wsi_mask[y:y + seg_h, x:x + seg_w] + 1
+
+            ## maximum
+            segmentation_result[y:y + seg_h, x:x + seg_w] = np.maximum(segmentation_result[y:y + seg_h, x:x + seg_w],
+                                                                       seg.astype(np.float16))
+
     def upload_annotation(self, predicted_data, project_id):
-        self.cj.job.update(progress=95, statusComment="Uploading annotations...")
+        self.cj.job.update(progress=95, statusComment="Uploading annotations")
 
         annotations = AnnotationCollection()
         components = ObjectFinder(predicted_data).find_components()
