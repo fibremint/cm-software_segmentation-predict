@@ -35,7 +35,6 @@ def main(argv):
         image_path = os.path.join(in_path, image.originalFilename)
         image.download(image_path)
 
-        # slide_crop = SlideCrop(slide_path=os.path.join(in_path, image.originalFilename))
         slide_seg = SlideSegmentation(cj=cj, tf_sess=tf_sess, image_instance=image, image_path=image_path,
                                       batch_size=4, threshold=0.5)
 
