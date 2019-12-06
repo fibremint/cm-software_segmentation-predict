@@ -36,7 +36,7 @@ def main(argv):
         image.download(image_path)
 
         batch_size = cj.parameters.batch_size
-        if batch_size == 0:
+        if batch_size == None:
             batch_size = os.cpu_count()
 
         slide_seg = SlideSegmentation(cj=cj, tf_sess=tf_sess, image_instance=image, image_path=image_path,
