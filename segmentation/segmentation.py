@@ -19,9 +19,10 @@ K = keras.backend
 
 class SlideSegmentation:
     def __init__(self, cj: CytomineJob, tf_sess, image_instance: ImageInstance, image_path,
-                 batch_size=8, threshold=0.5):
+                 batch_size, num_slide_actor=1, threshold=0.5):
         self.cj = cj
         self.batch_size = batch_size
+        self.num_slide_actor = num_slide_actor
         self.threshold = threshold
         self.sess = tf_sess
         K.set_session(self.sess)
@@ -45,8 +46,8 @@ class SlideSegmentation:
     def predict(self):
         wsi_seg_res = np.memmap("segmentation_result.bin", dtype=np.float16, mode='w+',
                                 shape=self.slide_crop.predicted_slide_size())
-        crop_batch_iterator, batch_len = self.slide_crop.crop(batch_size=self.batch_size)
-
+        crop_batch_iterator, batch_len = self.slide_crop.crop(batch_size=self.batch_size,
+                                                              num_slide_actor=self.num_slide_actor)
         partial_update = CytomineJobPartialUpdate(cj=self.cj, start=5, end=85,
                                                   max_index=batch_len, prefix="Predict slide")
 

@@ -1,5 +1,8 @@
 from cytomine.models import Annotation
 from shapely.affinity import affine_transform
+import numpy as np
+
+from segmentation import opts
 
 
 def create_annotation_from_location(location, id_image, image_height, id_project):
@@ -29,3 +32,10 @@ class CytomineJobPartialUpdate:
         progress = self.start + int(self.start_end_delta * (self.current_index / self.max_index))
         status_comment = self.prefix + " ({}/{})".format(self.current_index, self.max_index)
         self.cj.job.update(progress=progress, statusComment=status_comment)
+
+
+def calculate_batch_split(batch_size):
+    tile = np.zeros((opts.tile_size, opts.tile_size), dtype=np.float16)
+    batch_bytes = tile.size * tile.itemsize * batch_size
+
+    return int(opts.max_store_bytes // batch_bytes)

@@ -30,8 +30,8 @@ def main(argv):
             batch_size = os.cpu_count()
 
         slide_seg = SlideSegmentation(cj=cj, tf_sess=tf_sess, image_instance=image, image_path=image_path,
-                                      batch_size=batch_size, threshold=cj.parameters.threshold)
-
+                                      batch_size=batch_size, num_slide_actor=cj.parameters.num_slide_actor,
+                                      threshold=cj.parameters.threshold)
         predicted = slide_seg.predict()
 
         slide_seg.upload_annotation(predicted_data=predicted, project_id=cj.parameters.cytomine_id_project)

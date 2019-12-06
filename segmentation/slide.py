@@ -2,6 +2,9 @@ import numpy as np
 import ray
 from skimage.transform import resize
 
+from segmentation import opts
+from segmentation.util import calculate_batch_split
+
 
 @ray.remote
 class _SlideActor:
@@ -37,7 +40,6 @@ class SlideCrop:
         self.overlap_size = self.crop_size * overlap_ratio
         self.slide_path = slide_path
         self.slide = _SlideActor.remote(slide_path=self.slide_path)
-        self.slide_batch_split = 32
 
     def original_slide_size(self):
         return ray.get(self.slide.slide_size.remote())
@@ -47,7 +49,7 @@ class SlideCrop:
 
         return int(original_height / self.crop_scale), int(original_width / self.crop_scale)
 
-    def crop(self, batch_size):
+    def crop(self, batch_size, num_slide_actor):
         slide_width, slide_height = self.original_slide_size()
 
         non_overlap_size = self.crop_size - self.overlap_size
@@ -69,21 +71,29 @@ class SlideCrop:
 
         crop_coordinates_batches = [crop_coordinates_all[batch_idx:batch_idx+batch_size]
                                     for batch_idx in range(0, len(crop_coordinates_all), batch_size)]
+        batch_split = calculate_batch_split(batch_size=batch_size)
 
-        return self._crop_batch_split(crop_coordinates_batches=crop_coordinates_batches), len(crop_coordinates_batches)
+        return self._crop_batch_split(crop_coordinates_batches=crop_coordinates_batches,
+                                      num_slide_actor=num_slide_actor,
+                                      batch_split=batch_split), len(crop_coordinates_batches)
     
-    def _crop_batch_split(self, crop_coordinates_batches):
-        slide_actor = None
+    def _crop_batch_split(self, crop_coordinates_batches, num_slide_actor, batch_split):
+        actors = []
         results = []
+        slide_actor_memory = int(opts.max_store_bytes // num_slide_actor)
 
         for idx, crop_coordinates_batch in enumerate(crop_coordinates_batches):
-            if idx % self.slide_batch_split == 0:
+            if idx % batch_split == 0:
                 if len(results) != 0:
                     yield results
 
+                actors = []
                 results = []
-                slide_actor = _SlideActor.remote(slide_path=self.slide_path)
+                for _ in range(num_slide_actor):
+                    actors.append(_SlideActor.remote(slide_path=self.slide_path))
+                # slide_actor = _SlideActor.remote(slide_path=self.slide_path)
 
+            slide_actor = actors[idx % num_slide_actor]
             results.append([slide_actor.crop.remote(crop_coordinate=crop_coordinate,
                                                     crop_size=self.crop_size,
                                                     tile_size=self.tile_size,

@@ -6,7 +6,7 @@
     "index": "docker://",
     "type": "singularity"
   },
-  "command-line": "python run.py CYTOMINE_HOST CYTOMINE_PUBLIC_KEY CYTOMINE_PRIVATE_KEY CYTOMINE_ID_PROJECT CYTOMINE_ID_SOFTWARE CYTOMINE_ID_IMAGE BATCH_SIZE THRESHOLD",
+  "command-line": "python run.py CYTOMINE_HOST CYTOMINE_PUBLIC_KEY CYTOMINE_PRIVATE_KEY CYTOMINE_ID_PROJECT CYTOMINE_ID_SOFTWARE CYTOMINE_ID_IMAGE BATCH_SIZE NUM_SLIDE_ACTOR THRESHOLD",
   "schema-version": "cytomine-0.1",
   "inputs": [
     {
@@ -75,6 +75,17 @@
       "optional": true,
       "type": "Number",
       "default-value": 0
+    },
+    {
+      "id": "num_slide_actor",
+      "value-key": "@ID",
+      "command-line-flag": "--@id",
+      "name": "Number of Slide actor",
+      "description": "Size of batch on slide tiles",
+      "set-by-server": false,
+      "optional": true,
+      "type": "Number",
+      "default-value": 1
     },
     {
       "id": "threshold",
