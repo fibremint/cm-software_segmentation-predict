@@ -37,16 +37,14 @@ class SlideSegmentation:
 
         try:
             model.load_weights('/app/model/checkpoint_5.h5')
-            #model.load_weights('./model/checkpoint_5.h5')
+            # model.load_weights('./model/checkpoint_5.h5')
 
         except Exception as e:
             sys.exit("ERROR: failed to load weights")
 
     def predict(self):
-        # print('{} patches, split to {} batches'.format(len_patches, math.ceil(len_patches / )))
-        # slide_size = self.slide_crop.original_slide_size()
-        wsi_seg_res = np.memmap("segmentation_result.bin", dtype='float16', mode='w+',
-                                shape=tuple(self.slide_crop.predicted_slide_size()))
+        wsi_seg_res = np.memmap("segmentation_result.bin", dtype=np.float16, mode='w+',
+                                shape=self.slide_crop.predicted_slide_size())
         crop_batch_iterator, batch_len = self.slide_crop.crop(batch_size=self.batch_size)
 
         partial_update = CytomineJobPartialUpdate(cj=self.cj, start=5, end=85,

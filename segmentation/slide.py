@@ -24,7 +24,9 @@ class _SlideActor:
         return [slide_tile, (x, y)]
 
     def slide_size(self):
-        return self.slide.level_dimensions[self.level]
+        width, height = self.slide.level_dimensions[self.level]
+
+        return height, width
 
 
 class SlideCrop:
@@ -38,14 +40,12 @@ class SlideCrop:
         self.slide_batch_split = 32
 
     def original_slide_size(self):
-        slide_width, slide_height = ray.get(self.slide.slide_size.remote())
-
-        return [slide_height, slide_width]
+        return ray.get(self.slide.slide_size.remote())
 
     def predicted_slide_size(self):
-        slide_height, slide_width = self.original_slide_size()
+        original_height, original_width = self.original_slide_size()
 
-        return [int(slide_height / self.crop_scale), int(slide_width / self.crop_scale), ]
+        return int(original_height / self.crop_scale), int(original_width / self.crop_scale)
 
     def crop(self, batch_size):
         slide_width, slide_height = self.original_slide_size()
@@ -59,8 +59,6 @@ class SlideCrop:
             for j in range(num_slide_width + 2):
                 y = max(i * non_overlap_size, 0)
                 x = max(j * non_overlap_size, 0)
-                y = max(y, 0)
-                x = max(x, 0)
 
                 if y + self.crop_size > slide_height:
                     y = slide_height - self.crop_size
