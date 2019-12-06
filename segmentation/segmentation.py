@@ -36,7 +36,7 @@ class SlideSegmentation:
         self.model_output = tf.nn.softmax(model.output)
 
         try:
-            # model.load_weights('/app/model/checkpoint_5.h5')
+            #model.load_weights('/app/model/checkpoint_5.h5')
             model.load_weights('./model/checkpoint_5.h5')
 
         except Exception as e:

@@ -13,4 +13,4 @@ ADD run.py /app/run.py
 
 WORKDIR /app
 
-ENTRYPOINT ["python", "/app/run.py"]
+ENTRYPOINT ["python", "run.py"]
