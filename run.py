@@ -20,23 +20,13 @@ def main(argv):
 
         ray.init(num_cpus=os.cpu_count(), include_webui=False)
 
-        base_path = "{}".format(os.getenv("HOME"))
-        working_path = os.path.join(base_path, str(cj.job.id))
-        in_path = os.path.join(working_path, "in")
-        out_path = os.path.join(working_path, "out")
-
-        if not os.path.exists(working_path):
-            os.makedirs(working_path)
-            os.makedirs(in_path)
-            os.makedirs(out_path)
-
         cj.job.update(progress=1, statusComment="Fetching image...")
         image = cj.get_image_instance(cj.parameters.cytomine_id_image)
-        image_path = os.path.join(in_path, image.originalFilename)
+        image_path = os.path.join("/tmp", image.originalFilename)
         image.download(image_path)
 
         batch_size = cj.parameters.batch_size
-        if batch_size == None:
+        if batch_size is None:
             batch_size = os.cpu_count()
 
         slide_seg = SlideSegmentation(cj=cj, tf_sess=tf_sess, image_instance=image, image_path=image_path,
