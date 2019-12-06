@@ -66,6 +66,17 @@
       "uri-soft-attribute": "instanceFilename"
     },
     {
+      "id": "batch_size",
+      "value-key": "@ID",
+      "command-line-flag": "--@id",
+      "name": "Batch size",
+      "description": "Size of batch on slide tiles",
+      "set-by-server": false,
+      "optional": true,
+      "type": "Number",
+      "default-value": 0
+    },
+    {
       "id": "threshold",
       "value-key": "@ID",
       "command-line-flag": "--@id",
