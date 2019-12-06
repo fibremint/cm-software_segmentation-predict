@@ -11,6 +11,4 @@ ADD segmentation /app/segmentation
 ADD descriptor.json /app/descriptor.json
 ADD run.py /app/run.py
 
-WORKDIR /app
-
-ENTRYPOINT ["python", "run.py"]
+ENTRYPOINT ["python", "/app/run.py"]
