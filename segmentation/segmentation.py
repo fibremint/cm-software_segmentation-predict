@@ -44,8 +44,9 @@ class SlideSegmentation:
             sys.exit("ERROR: failed to load weights")
 
     def predict(self):
-        wsi_seg_res = np.memmap("segmentation_result.bin", dtype=np.float16, mode='w+',
-                                shape=self.slide_crop.predicted_slide_size())
+        # wsi_seg_res = np.memmap("segmentation_result.bin", dtype=np.float16, mode='w+',
+        #                         shape=self.slide_crop.predicted_slide_size())
+        wsi_seg_res = np.zeros(self.slide_crop.predicted_slide_size(), dtype=np.float16)
         crop_batch_iterator, batch_len = self.slide_crop.crop(batch_size=self.batch_size,
                                                               num_slide_actor=self.num_slide_actor)
         partial_update = CytomineJobPartialUpdate(cj=self.cj, start=5, end=85,
