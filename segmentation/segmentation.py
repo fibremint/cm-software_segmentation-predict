@@ -60,9 +60,13 @@ class SlideSegmentation:
 
         self.cj.job.update(progress=90, statusComment="Processing predicted results")
         wsi_seg_res = resize(wsi_seg_res, self.slide_crop.original_slide_size())
+        print('resized')
         wsi_seg_res = wsi_seg_res.astype(np.float32) / wsi_seg_res.max()
+        print('regularized')
         wsi_seg_res[wsi_seg_res < self.threshold] = 0
+        print('threshold applied')
         wsi_seg_res = (wsi_seg_res * 255.0).astype(np.uint8)
+        print('change range to image')
 
         return wsi_seg_res
 

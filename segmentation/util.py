@@ -34,8 +34,7 @@ class CytomineJobPartialUpdate:
         self.cj.job.update(progress=progress, statusComment=status_comment)
 
 
-def calculate_batch_split(batch_size):
-    tile = np.zeros((opts.tile_size, opts.tile_size), dtype=np.float16)
+def calculate_batch_split(tile, batch_size):
     batch_bytes = tile.size * tile.itemsize * batch_size
 
     return int(opts.max_store_bytes // batch_bytes)

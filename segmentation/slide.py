@@ -2,7 +2,6 @@ import numpy as np
 import ray
 from skimage.transform import resize
 
-from segmentation import opts
 from segmentation.util import calculate_batch_split
 
 
@@ -71,7 +70,12 @@ class SlideCrop:
 
         crop_coordinates_batches = [crop_coordinates_all[batch_idx:batch_idx+batch_size]
                                     for batch_idx in range(0, len(crop_coordinates_all), batch_size)]
-        batch_split = calculate_batch_split(batch_size=batch_size)
+        tile_sample, _ = ray.get(self.slide.crop.remote(crop_coordinate=(0, 0),
+                                                        crop_size=self.crop_size,
+                                                        tile_size=self.tile_size,
+                                                        crop_scale=self.crop_scale))
+        batch_split = calculate_batch_split(tile=tile_sample,
+                                            batch_size=batch_size)
 
         return self._crop_batch_split(crop_coordinates_batches=crop_coordinates_batches,
                                       num_slide_actor=num_slide_actor,
@@ -80,7 +84,6 @@ class SlideCrop:
     def _crop_batch_split(self, crop_coordinates_batches, num_slide_actor, batch_split):
         actors = []
         results = []
-        slide_actor_memory = int(opts.max_store_bytes // num_slide_actor)
 
         for idx, crop_coordinates_batch in enumerate(crop_coordinates_batches):
             if idx % batch_split == 0:
@@ -91,7 +94,6 @@ class SlideCrop:
                 results = []
                 for _ in range(num_slide_actor):
                     actors.append(_SlideActor.remote(slide_path=self.slide_path))
-                # slide_actor = _SlideActor.remote(slide_path=self.slide_path)
 
             slide_actor = actors[idx % num_slide_actor]
             results.append([slide_actor.crop.remote(crop_coordinate=crop_coordinate,
