@@ -18,6 +18,8 @@ The class ```SlideActor``` in [slide.py](https://github.com/fibremint/cm-softwar
 * [**Cytomine-bootstrap**](https://github.com/Cytomine-ULiege/Cytomine-bootstrap/tree/2019.1): commit@4eda498
 
 ## Requirements (dev)
+* **Python**: v3.7
+* **Openslide**: with ```apt-get install openslide-tools```
 * [**Cytomine-python-client**](https://github.com/Cytomine-ULiege/Cytomine-python-client): v2.4.0
 * [**Neubias-WG5 utilities**](https://github.com/Neubias-WG5/neubiaswg5-utilities): v0.8.6
 
