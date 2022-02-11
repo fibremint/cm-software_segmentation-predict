@@ -18,7 +18,7 @@ more-itertools==8.0.2
 openslide-python==1.1.1
 packaging==19.2
 pluggy==0.13.1
-protobuf==3.11.1
+protobuf==3.15.0
 py==1.8.0
 pyrsistent==0.15.6
 pytest==5.3.1
