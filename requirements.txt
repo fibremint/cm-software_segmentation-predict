@@ -26,7 +26,7 @@ PyYAML==5.2
 ray==0.7.6
 redis==3.3.11
 tensorboard==1.14.0
-tensorflow==1.14.0
+tensorflow==2.7.2
 tensorflow-estimator==1.14.0
 termcolor==1.1.0
 wcwidth==0.1.7
